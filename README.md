@@ -4,7 +4,11 @@ this is a work in progress. very basic functionality for now
 
 create markdown-based posts with yaml headers (title and date only) posts
 locally, convert to html and template using jinja, push to s3 bucket using
-boto
+boto.
+
+if unfamiliar with s3, activate static web site hosting in bucket, add
+policy for bucket and iam entity you're using to access the aws api. use
+cloudfront if your dad works at nsa
 
 ## requirements
 
