@@ -44,6 +44,7 @@ if __name__ == "__main__":
         config=config
     )
 
+    # just gonna pretend this is bash for now
     argv.pop(0)
 
     try:
@@ -57,13 +58,13 @@ if __name__ == "__main__":
         )
     elif OP == "n":
         argv.pop(0)
-        blog.create_post(argv[0])
+
+        try:
+            blog.create_post(argv[0])
+        except IndexError:
+            blog.create_post()
     elif OP == "p":
         blog.sync_state()
-    elif OP == "c":
-        print(blog.get_unsynced_posts())
-    elif OP == "s":
-        print(blog.sort_posts(blog.post_dir))
     else:
         print_usage()
 
