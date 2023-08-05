@@ -8,6 +8,9 @@ from yaml import load, Loader
 from shutil import move
 from tempfile import TemporaryDirectory
 from datetime import datetime
+from re import compile, match, sub
+from sys import exit as sysexit
+import logging
 
 class Blog:
     def __init__(self, config):
@@ -28,9 +31,30 @@ class Blog:
             shutil.copytree("templates/", self.base_dir)
 
 
-    def create_post(self, title):
-        #with open(f"{self.post_dir}/title")
-        True 
+    def create_post(self, title=None):
+        """ Creates a new Markdown-based post file in local post directory """
+
+        if not title:
+            title = input("title> ").rstrip("\n")
+
+        alphanumeric_spaces_regexp = compile(r"[\w ]")
+        formatted_title = sub(
+            r"[ ]{1,}",
+            "_",
+            "".join(
+                alphanumeric_spaces_regexp.findall(title)
+            )
+        )
+
+        with open(f"{self.post_dir}/{formatted_title}.md", "a") as post_file:
+            post_file.write("---\n")
+            post_file.write(f"title: \"{title}\"\n")
+            post_file.write(f"date: \"{int(datetime.now().timestamp())}\"\n")
+            post_file.write("---\n")
+            post_file.write("\n")
+
+        logging.info(f"created post '{title}' in '{self.post_dir}'")
+        
 
     def list_posts(self):
         # list unsynced, unpublished drafts
@@ -47,34 +71,12 @@ class Blog:
 
     def prune_posts(self):
         for post in self.get_unsynced_posts():
-            print(post)
             self.s3_client.delete_object(
                 Bucket=self.bucket,
-                Key=f"p/{post}"
+                Key=f"p/{post}.html"
             )
 
-    def select_posts(self, prompt, dir):
-        dir_contents = listdir(dir)
-        selected_posts = []
-
-        for index, post in enumerate(dir_contents):
-            print(f"[{index}] {post}")
-
-        user_selection = input(prompt)
-
-        if len(user_selection) < 1:
-            print("select at least one post")
-            print()
-
-            select_posts(prompt, dir)
-        elif len(user_selection) == 1:
-            selected_posts.append(dir_contents[int(user_selection)])
-        else:
-            selected_posts = []
-            for index in user_selection.split(","):
-                selected_posts.append(dir_contents[int(index)])
-
-        return selected_posts
+            logging.info(f"pruned post '{post}' from bucket")
 
     def sync_state(self):
         tmp_dir = TemporaryDirectory()
@@ -100,15 +102,31 @@ class Blog:
 
         tmp_dir.cleanup()
 
+    def sort_posts(self, posts):
+        """ Reads epoch timestamp from YAML file header and sorts posts by newest """
+
+        if type(posts) == str:
+            posts = listdir(posts)
+
+        sorted_posts = sorted(
+            posts,
+            key=lambda p: datetime.fromtimestamp(
+                int(
+                    self.parse_post(f"{self.post_dir}/{p}")[0]["date"]
+                )
+            ),
+            reverse=True
+        )
+
+        return sorted_posts
+
     def build_posts(self, dir):
         mkdir(f"{dir}/p")
 
-        for post in listdir(self.post_dir):
+        for post in self.sort_posts(self.post_dir):
             abs_markdown_path = f"{self.post_dir}/{post}"
             # e.g. "2.md" -> ["2", "md"] -> "2" + ".html"
             abs_html_path = f"{dir}/p/{post.split('.')[0]}.html"
-
-            print(abs_markdown_path)
 
             with open(abs_html_path, "a+") as post_file:
                 # index 0 == yaml header as dict
@@ -124,6 +142,8 @@ class Blog:
                     )
                 )
 
+        logging.info(f"built post file '{abs_html_path.split('/')[-1]}' in dir '{dir}'")
+
     def build_index(self, dir):
         """ """
 
@@ -132,15 +152,17 @@ class Blog:
         vars["posts"] = []
 
         # reads the whole file and returns the content. a little inefficient
-        for post in self.get_local_posts():
+        for post in self.sort_posts(self.get_local_posts(extension=True)):
             # leave the content, take the yaml header
             # https://www.youtube.com/watch?v=yHzh0PvMWTI
-            yaml_header, _ = self.parse_post(f"{self.post_dir}/{post}.md")
-            post_date_epoch = datetime.fromtimestamp(yaml_header["date"])
+            yaml_header, _ = self.parse_post(f"{self.post_dir}/{post}")
+            post_date_epoch = datetime.fromtimestamp(int(yaml_header["date"]))
             post_date_formatted = post_date_epoch.strftime("%b %d, %y")
 
             vars["posts"].append({
-                "name": post,
+                # replace markdown file ending since we require extensions
+                # to correctly reference posts during sorting operation
+                "name": post.replace(".md", ""),
                 "title": yaml_header["title"],
                 "created_at": post_date_formatted.lower()
             })
@@ -156,6 +178,8 @@ class Blog:
                     vars
                 )
             )
+
+        logging.info(f"built index file in dir '{dir}'")
 
     # friendly helper functions
 
@@ -205,7 +229,6 @@ class Blog:
         rendered_template = post_template.render(
             vars
         )
-
         return rendered_template
 
     def render_markdown(self, markdown_content):

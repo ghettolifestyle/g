@@ -53,11 +53,16 @@ if __name__ == "__main__":
         print(
             blog.list_posts()
         )
+    elif OP == "n":
+        argv.pop(0)
+        blog.create_post(argv[0])
     elif OP == "p":
         blog.sync_state()
     elif OP == "c":
         print(blog.get_unsynced_posts())
+    elif OP == "s":
+        print(blog.sort_posts(blog.post_dir))
     else:
         print_usage()
 
-blog.sync_state()
+# blog.sync_state()
