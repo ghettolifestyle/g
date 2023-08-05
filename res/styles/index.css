@@ -1,0 +1,49 @@
+#links li {
+        display: inline;
+        margin-right: 8px;
+}
+
+#links {
+        list-style: none;
+        padding-left: 0;
+}
+
+#posts {
+        list-style: square;
+}
+
+.date { 
+        color: #a3a3a3;
+        margin-left: 8px;
+}
+
+a { 
+        text-decoration: none;
+}
+
+ul {
+        margin-top: 0;
+        padding-top: 0;
+}
+
+h1 {
+        font-size: 24px;
+}
+
+h2 {
+        font-size: 20px;
+}
+
+h1,
+h2 {
+        font-weight: normal;
+        margin-bottom: 0;
+        padding-bottom: 8px;
+}
+
+html {
+        width: 58ch;
+        font-size: 15px;
+        line-height: 1.6;
+        font-family: "Helvetica Neue", "Aptos", sans-serif;
+}

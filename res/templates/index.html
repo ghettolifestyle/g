@@ -3,9 +3,7 @@
         <head>
                 <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1">
-                <title>
-                        {{ title }}
-                </title>
+                <title>{{ title }}</title>
                 <style>
                         #links li {
                                 display: inline;
@@ -61,17 +59,17 @@
         <body>
                 <h1>{{ title }}</h1>
                 <ul id="links">
-                        {% for site, hyperlink in link.items() %}
-                        <li><a target="_blank" href="{{ hyperlink }}">{{ site }}/a></li>
+                        {% for site, hyperlink in links.items() %}
+                        <li><a target="_blank" href="{{ hyperlink }}">{{ site }}</a></li>
                         {% endfor %}
                 </ul>
 
                 <p>{{ cool_tagline }}</p>
 
                 <h2>posts</h2>
-                {% for post in posts %}
                 <ul id="posts">
-                        <li><a href="p/{{ post.name }}.html">{{ post.title }}</a><span class="date">{{ post.created_at }}</span></li>
+                {% for post in posts %}
+                        <li><a href="p/{{ post.uri }}">{{ post.title }}</a><span class="date">{{ post.created_at }}</span></li>
                 {% endfor %}
                 </ul>
         </body>

@@ -138,6 +138,7 @@ class Blog:
                 post_metadata, post_content = self.parse_post(abs_markdown_path)
                 # render content, insert html into dict for jinja to template
                 post_metadata["content"] = self.render_markdown(post_content)
+                post_metadata["quote_under_posts"] = self.config.meta["quote_under_posts"]
 
                 post_file.write(
                     self.render_template(

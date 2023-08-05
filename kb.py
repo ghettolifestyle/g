@@ -21,6 +21,10 @@ if __name__ == "__main__":
             "author": "kevin mai",
             "url": "https://kmai.xyz",
             "cool_tagline": "boomer mindset. now with more serifs",
+            "quote_under_posts": {
+                "body": "Who's gonna carry the boats? And the logs?",
+                "source": "David Goggins"
+            },
             "links": {
                 "github": "https://github.com/ghettolifestyle",
                 "linkedin": "https://www.linkedin.com/in/kevin-mai-324b86171/",
