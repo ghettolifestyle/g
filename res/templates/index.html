@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+        <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>
+                        {{ title }}
+                </title>
+                <style>
+                        #links li {
+                                display: inline;
+                                margin-right: 8px;
+                        }
+
+                        #links {
+                                list-style: none;
+                                padding-left: 0;
+                        }
+
+                        #posts {
+                                list-style: square;
+                        }
+
+                        .date { 
+                                color: #a3a3a3;
+                                margin-left: 8px;
+                        }
+
+                        a { 
+                                text-decoration: none;
+                        }
+
+                        ul {
+                                margin-top: 0;
+                                padding-top: 0;
+                        }
+
+                        h1 {
+                                font-size: 24px;
+                        }
+
+                        h2 {
+                                font-size: 20px;
+                        }
+
+                        h1,
+                        h2 {
+                                font-weight: normal;
+                                margin-bottom: 0;
+                                padding-bottom: 8px;
+                        }
+
+                        html {
+                                width: 58ch;
+                                font-size: 15px;
+                                line-height: 1.6;
+                                font-family: "Helvetica Neue", "Aptos", sans-serif;
+                        }
+                </style>
+        </head>
+        <body>
+                <h1>{{ title }}</h1>
+                <ul id="links">
+                        {% for site, hyperlink in link.items() %}
+                        <li><a target="_blank" href="{{ hyperlink }}">{{ site }}/a></li>
+                        {% endfor %}
+                </ul>
+
+                <p>{{ cool_tagline }}</p>
+
+                <h2>posts</h2>
+                {% for post in posts %}
+                <ul id="posts">
+                        <li><a href="p/{{ post.name }}.html">{{ post.title }}</a><span class="date">{{ post.created_at }}</span></li>
+                {% endfor %}
+                </ul>
+        </body>
+</html>
