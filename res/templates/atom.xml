@@ -1,7 +1,17 @@
 <feed>
-<title>kevin mai's blog posts</title>
-<link href="https://kmai.xyz/"/>
-<author>
-<name>kevin mai</name>
-</author>
+  <title>{{ title }}</title>
+  <link href="{{ url }}"/>
+  <author>
+    <name>{{ author }}</name>
+  </author>
+  {% for post in posts %}
+  <entry>
+    <title>{{ post.title }}</title>
+    <link>{{ url }}/p/{{ post.uri }}</link>
+    <updated>{{ post.created_at }}</updated>
+    <content type="html" xml:lang="en"><![CDATA[
+    {{ post.content }}
+    ]]></content>
+  </entry>
+  {% endfor %}
 </feed>

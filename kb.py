@@ -18,6 +18,8 @@ if __name__ == "__main__":
     config = Config(
         meta={
             "title": "kevin mai's personal blog",
+            "author": "kevin mai",
+            "url": "https://kmai.xyz",
             "cool_tagline": "boomer mindset. now with more serifs",
             "links": {
                 "github": "https://github.com/ghettolifestyle",

@@ -7,7 +7,7 @@ import markdown
 from yaml import load, Loader
 from shutil import move
 from tempfile import TemporaryDirectory
-from datetime import datetime
+from datetime import datetime, timezone
 from re import compile, match, sub
 from sys import exit as sysexit
 import logging
@@ -49,7 +49,7 @@ class Blog:
         with open(f"{self.post_dir}/{formatted_title}.md", "a") as post_file:
             post_file.write("---\n")
             post_file.write(f"title: \"{title}\"\n")
-            post_file.write(f"date: \"{int(datetime.now().timestamp())}\"\n")
+            post_file.write(f"date: \"{int(datetime.now(timezone.utc).timestamp())}\"\n")
             post_file.write("---\n")
             post_file.write("\n")
 
@@ -83,20 +83,24 @@ class Blog:
 
         self.build_posts(tmp_dir.name)
         self.build_index(tmp_dir.name)
+        self.build_atom_feed(tmp_dir.name)
         
         for obj in Path(tmp_dir.name).rglob("*"):
-                try:
-                    self.s3_client.upload_file(
-                        obj,
-                        self.bucket,
-                        Key=f"{obj.relative_to(tmp_dir.name)}",
-                        ExtraArgs={
-                            "ContentType": "text/html"
-                        }
+            extra_args = {
+                "ContentType": "text/html"
+            } if obj.suffix == ".html" else {
+                "ContentType": "text/xml"
+            }
 
-                    )
-                except IsADirectoryError as e:
-                    pass
+            try:
+                self.s3_client.upload_file(
+                    obj,
+                    self.bucket,
+                    Key=f"{obj.relative_to(tmp_dir.name)}",
+                    ExtraArgs=extra_args
+                )
+            except IsADirectoryError as e:
+                pass
 
         self.prune_posts()
 
@@ -147,29 +151,7 @@ class Blog:
     def build_index(self, dir):
         """ """
 
-        # create a dict to pass to jinja
-        vars = {}
-        vars["posts"] = []
-
-        # reads the whole file and returns the content. a little inefficient
-        for post in self.sort_posts(self.get_local_posts(extension=True)):
-            # leave the content, take the yaml header
-            # https://www.youtube.com/watch?v=yHzh0PvMWTI
-            yaml_header, _ = self.parse_post(f"{self.post_dir}/{post}")
-            post_date_epoch = datetime.fromtimestamp(int(yaml_header["date"]))
-            post_date_formatted = post_date_epoch.strftime("%b %d, %y")
-
-            vars["posts"].append({
-                # replace markdown file ending since we require extensions
-                # to correctly reference posts during sorting operation
-                "name": post.replace(".md", ""),
-                "title": yaml_header["title"],
-                "created_at": post_date_formatted.lower()
-            })
-
-        vars["cool_tagline"] = self.config.meta["cool_tagline"]
-        vars["title"] = self.config.meta["title"]
-        vars["links"] = self.config.meta["links"]
+        vars = self.construct_meta_dict("index")
 
         with open(f"{dir}/index.html", "w") as index_file:
             index_file.write(
@@ -180,6 +162,17 @@ class Blog:
             )
 
         logging.info(f"built index file in dir '{dir}'")
+
+    def build_atom_feed(self, dir):
+        vars = self.construct_meta_dict("atom")
+
+        with open(f"{dir}/atom.xml", "w") as atom_file:
+            atom_file.write(
+                self.render_template(
+                    "atom.xml",
+                    vars
+                )
+            )
 
     # friendly helper functions
 
@@ -220,6 +213,37 @@ class Blog:
         local_posts = self.get_local_posts()
 
         return list(set(synced_posts) - set(local_posts))
+
+    def construct_meta_dict(self, template_type):
+        vars = {}
+        vars["posts"] = []
+
+        # reads the whole file and returns the content. a little inefficient
+        for post in self.sort_posts(self.get_local_posts(extension=True)):
+            # leave the content, take the yaml header
+            # https://www.youtube.com/watch?v=yHzh0PvMWTI
+            yaml_header, _ = self.parse_post(f"{self.post_dir}/{post}")
+            post_date_epoch = datetime.fromtimestamp(int(yaml_header["date"]))
+
+            if template_type == "index":
+                post_date_formatted = post_date_epoch.strftime("%b %d, %y").lower()
+            elif template_type == "atom":
+                post_date_formatted = post_date_epoch.astimezone().isoformat()
+
+            vars["posts"].append({
+                "title": yaml_header["title"],
+                "uri": post.replace(".md", ".html"),
+                "created_at": post_date_formatted,
+                "content": self.render_markdown(_)
+            })
+
+        vars["cool_tagline"] = self.config.meta["cool_tagline"]
+        vars["title"] = self.config.meta["title"]
+        vars["author"] = self.config.meta["author"]
+        vars["url"] = self.config.meta["url"]
+        vars["links"] = self.config.meta["links"]
+
+        return vars
 
     def render_template(self, template, vars):
         env = self.config.jinja_env
