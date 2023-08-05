@@ -2,8 +2,9 @@
 
 this is a work in progress. very basic functionality for now
 
-create markdown-based with yaml headers (title and date only) posts locally,
-convert to html and template using jinja, push to s3 bucket using boto
+create markdown-based posts with yaml headers (title and date only) posts
+locally, convert to html and template using jinja, push to s3 bucket using
+boto
 
 ## requirements
 
