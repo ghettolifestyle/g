@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+        <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width,initial-scale=1">
+                <title>{{ title }}</title>
+                <style>
+                        #quote {
+                                margin-top: 3em;
+                        }
+
+                        #note,
+                        #quote,
+                        .date {
+                        
+                                color: #a3a3a3;
+                        }
+
+                        a { 
+                                text-decoration: none;
+                        }
+
+                        h1 {
+                                font-size: 24px;
+                        }
+
+                        h2 {
+                                font-size: 20px;
+                        }
+
+                        h1,
+                        h2,
+                        h3 {
+                                font-weight: normal;
+                        }
+
+                        code {
+                                display: inline;
+                                background-color: #ffffea;
+                                border: 2px dashed #eaffff;
+                                padding: 4px;
+                                font-size: 0.8em;
+                        }
+
+                        main {
+                                text-align: justify;
+                        }
+
+                        html {
+                                width: 58ch;
+                                font-size: 15px;
+                                line-height: 1.6;
+                                font-family: "Helvetica Neue", "Aptos", sans-serif;
+                        }
+                </style>
+        </head>
+
+        <body>
+                <main>
+                        <a href="/">&lt;&lt;</a>
+
+                        <h1>{{ title }}</h1>
+
+                        <p class="date">{{ date }}</p>
+
+                        {{ content }}
+
+                        {{ quote }}
+                </main>
+        </body>
+
+</html>
