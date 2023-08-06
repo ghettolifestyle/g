@@ -59,7 +59,7 @@ class Blog:
     def list_posts(self):
         # list unsynced, unpublished drafts
         print("local:")
-        for index, post in enumerate(self.get_local_posts(extension=True)):
+        for index, post in enumerate(self.sort_posts(self.get_local_posts(extension=True))):
             print(f"\t[{index}] {post}")
 
         print()
