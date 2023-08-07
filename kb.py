@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from sys import path, argv, exit as sysexit
-from os import stat
+from os import stat, makedirs
 from shutil import copytree
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
@@ -42,7 +42,9 @@ if __name__ == "__main__":
     try:
         stat(config.base_dir)
     except FileNotFoundError:
-        copytree("blog/", config.base_dir)
+        makedirs(f"{config.base_dir}/posts", exist_ok=True)
+
+        copytree("res/templates", config.base_dir)
 
     blog = Blog(
         config=config
@@ -67,9 +69,11 @@ if __name__ == "__main__":
             blog.create_post(argv[0])
         except IndexError:
             blog.create_post()
-    elif OP == "p":
+    elif OP == "t":
+        blog.toggle_post_visibility()
+    elif OP == "s":
         blog.sync_state()
     else:
         print_usage()
 
-# blog.sync_state()
+blog.sync_state()

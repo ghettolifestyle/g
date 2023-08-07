@@ -1,7 +1,6 @@
 from os import listdir, mkdir, stat
 from pathlib import Path
-from boto3 import client
-from boto3 import Session
+from boto3 import client, Session
 from botocore.exceptions import ClientError
 import markdown
 from yaml import load, Loader
@@ -46,7 +45,7 @@ class Blog:
             )
         )
 
-        with open(f"{self.post_dir}/{formatted_title}.md", "a") as post_file:
+        with open(f"{self.post_dir}/_{formatted_title}.md", "a") as post_file:
             post_file.write("---\n")
             post_file.write(f"title: \"{title}\"\n")
             post_file.write(f"date: \"{int(datetime.now(timezone.utc).timestamp())}\"\n")
@@ -92,15 +91,17 @@ class Blog:
                 "ContentType": "text/xml"
             }
 
-            try:
-                self.s3_client.upload_file(
-                    obj,
-                    self.bucket,
-                    Key=f"{obj.relative_to(tmp_dir.name)}",
-                    ExtraArgs=extra_args
-                )
-            except IsADirectoryError as e:
-                pass
+            # ignore drafts
+            if not obj.stem[0] == "_":
+                try:
+                    self.s3_client.upload_file(
+                        obj,
+                        self.bucket,
+                        Key=f"{obj.relative_to(tmp_dir.name)}",
+                        ExtraArgs=extra_args
+                    )
+                except IsADirectoryError as e:
+                    pass
 
         self.prune_posts()
 
@@ -123,6 +124,36 @@ class Blog:
         )
 
         return sorted_posts
+
+    def select_posts(self, prompt):
+        selected_posts = []
+        local_posts = self.sort_posts(self.get_local_posts(extension=True))
+
+        for index, post in enumerate(local_posts):
+            if post[0] == "_":
+                print(f"[{index}] {post} (DRAFT)")
+            else:
+                print(f"[{index}] {post}")
+
+        selection = input(prompt).split(",")
+        if len(selection) < 1:
+            print("select at least one post")
+            sysexit(1)
+            # select_posts(prompt, dir)
+        
+        for post_index in selection:
+            selected_posts.append(local_posts[int(post_index)])
+        
+        return selected_posts
+        
+    def toggle_post_visibility(self):
+        selected_posts = self.select_posts("toggle> ")
+
+        for post in selected_posts:
+            if post[0] == "_":
+                move(f"{self.post_dir}/{post}", f"{self.post_dir}/{post[1:]}")
+            else:
+                move(f"{self.post_dir}/{post}", f"{self.post_dir}/_{post}")
 
     def build_posts(self, dir):
         mkdir(f"{dir}/p")
@@ -190,21 +221,12 @@ class Blog:
             # if bucket is empty, ignore error
             pass
 
-        if extension:
-            synced_posts = [post["Key"].split("/")[1] for post in bucket_contents]
-        else:
-            synced_posts = [post["Key"].split("/")[1].split(".")[0] for post in bucket_contents]
-
-        return synced_posts
+        return [post["Key"].split("/")[1].split(".")[0] if extension else post["Key"].split("/")[1] for post in bucket_contents]
 
     def get_local_posts(self, extension=False):
         """ Returns list containing post files in local post directory """
-        local_posts = []
 
-        for post in listdir(self.post_dir):
-            file_name = post.split(".")[0] if not extension else post
-            local_posts.append(file_name)
-        return local_posts
+        return [post if extension else post.split(".")[0] for post in self.sort_posts(listdir(self.post_dir))]
 
     def get_unsynced_posts(self):
         """ Compares lists of uploaded post files in S3 bucket and local post
@@ -221,22 +243,23 @@ class Blog:
 
         # reads the whole file and returns the content. a little inefficient
         for post in self.sort_posts(self.get_local_posts(extension=True)):
-            # leave the content, take the yaml header
-            # https://www.youtube.com/watch?v=yHzh0PvMWTI
-            yaml_header, _ = self.parse_post(f"{self.post_dir}/{post}")
-            post_date_epoch = datetime.fromtimestamp(int(yaml_header["date"]))
+            if post[0] != "_":
+                # leave the content, take the yaml header
+                # https://www.youtube.com/watch?v=yHzh0PvMWTI
+                yaml_header, _ = self.parse_post(f"{self.post_dir}/{post}")
+                post_date_epoch = datetime.fromtimestamp(int(yaml_header["date"]))
 
-            if template_type == "index":
-                post_date_formatted = post_date_epoch.strftime("%b %d, %y").lower()
-            elif template_type == "atom":
-                post_date_formatted = post_date_epoch.astimezone().isoformat()
+                if template_type == "index":
+                    post_date_formatted = post_date_epoch.strftime("%b %d, %y").lower()
+                elif template_type == "atom":
+                    post_date_formatted = post_date_epoch.astimezone().isoformat()
 
-            vars["posts"].append({
-                "title": yaml_header["title"],
-                "uri": post.replace(".md", ".html"),
-                "created_at": post_date_formatted,
-                "content": self.render_markdown(_)
-            })
+                vars["posts"].append({
+                    "title": yaml_header["title"],
+                    "uri": post.replace(".md", ".html"),
+                    "created_at": post_date_formatted,
+                    "content": self.render_markdown(_)
+                })
 
         vars["cool_tagline"] = self.config.meta["cool_tagline"]
         vars["title"] = self.config.meta["title"]
