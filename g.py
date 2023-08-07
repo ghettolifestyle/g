@@ -12,7 +12,7 @@ HOME_DIR = f"{str(Path.home())}"
 def print_usage():
     """ Prints program usage information and exits """
 
-    print("""./kb.py {
+    print("""./g.py {
         \tn [title]\t-> create new draft
         \tt\t\t-> toggle post visibility (draft/undraft)
         \ts\t\t-> manually sync state (incl. pruning)\n}""")

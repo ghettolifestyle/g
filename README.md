@@ -1,4 +1,4 @@
-# kb
+# g
 
 this is a work in progress. very basic functionality for now
 
@@ -22,7 +22,7 @@ you need
 
 ## usage
 
-adjust metadata, base_dir, bucket_name, literally everything in config object instantiation in `kb.py`
+adjust metadata, base_dir, bucket_name, literally everything in config object instantiation in `g.py`
 
 ```python
 config = Config(
@@ -39,7 +39,7 @@ config = Config(
         }
     },
     base_dir=f"{HOME_DIR}/Documents/aws_blog",
-    bucket="kmai-xyz-yc9qtscxpemdfxkbncjfjuxxu5q3j",
+    bucket="kmai-xyz-yc9qtscxpemdfxgncjfjuxxu5q3j",
     jinja_env=Environment(
         loader=FileSystemLoader(f"{HOME_DIR}/Documents/aws_blog/templates")
     )
@@ -49,8 +49,8 @@ config = Config(
 make file executable, execute file
 
 ```shell
-% chmod u+x ./kb.py
-% ./kb.py n "<optional_title_you_will_be_prompted>"
+% chmod u+x ./g.py
+% ./g.py n "<optional_title_you_will_be_prompted>"
 % vim "<base_dir>/posts/"   # find post and press enter, add metadata and body
 ```
 
@@ -64,7 +64,7 @@ will be constructed in a temp dir, then synced to s3 automatically
 __NOTE:__ drafts will NOT be synced
 
 ```shell
-% ./kb.py t
+% ./g.py t
 
 [0] _test.md (DRAFT)
 [1] groundhog_day.md
