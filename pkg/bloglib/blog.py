@@ -53,7 +53,6 @@ class Blog:
             post_file.write("\n")
 
         logging.info(f"created post '{title}' in '{self.post_dir}'")
-        
 
     def list_posts(self):
         # list unsynced, unpublished drafts
@@ -221,7 +220,7 @@ class Blog:
             # if bucket is empty, ignore error
             pass
 
-        return [post["Key"].split("/")[1].split(".")[0] if extension else post["Key"].split("/")[1] for post in bucket_contents]
+        return [post["Key"].split("/")[1] if extension else post["Key"].split("/")[1].split(".")[0] for post in bucket_contents]
 
     def get_local_posts(self, extension=False):
         """ Returns list containing post files in local post directory """
@@ -233,7 +232,7 @@ class Blog:
         directory, returns list containing elements not present in S3 bucket"""
         
         synced_posts = self.get_synced_posts()
-        local_posts = self.get_local_posts()
+        local_posts = [post if post[0] != "_" else None for post in self.get_local_posts()]
 
         return list(set(synced_posts) - set(local_posts))
 
