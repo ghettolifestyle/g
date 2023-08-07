@@ -54,21 +54,27 @@ make file executable, execute file
 % vim "<base_dir>/posts/"   # find post and press enter, add metadata and body
 ```
 
+post will be created as draft. posts become drafts when first character in
+relative post file path is an underscore ("_")
+
 type away on keyboard until post is good or, alternatively, until satisfied.
-construct html files in temp dir and sync
+toggle post visibility, i.e. transition from draft to post uwu. html files
+will be constructed in a temp dir, then synced to s3 automatically
+
+__NOTE:__ drafts will NOT be synced
 
 ```shell
-% ./kb.py p
+% ./kb.py t
+
+[0] _test.md (DRAFT)
+[1] groundhog_day.md
+[2] the_state_of_things.md
+toggle> 0
 ```
 
-want to remove post? easy, just delete from `self.post_dir`, then resync
-("automatic" in future). script will compare state and remove accordingly.
-local directory is source of truth
-
-```
-% rm "<base_dir>/posts/<rel_path_to_post>"
-% ./kb.py p
-```
+want to remove post from blog? easy, just toggle visibility on a non-draft
+post. it will be pruned from the bucket and its markdown file will be
+renamed to include a leading underscore. local directory is source of truth
 
 ## what it doesn't do and how to fix (maybe)
 
