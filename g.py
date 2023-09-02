@@ -25,7 +25,7 @@ if __name__ == "__main__":
             "title": "kevin mai's personal blog",
             "author": "kevin mai",
             "url": "https://kmai.xyz",
-            "cool_tagline": "boomer mindset. now with fewer serifs",
+            "cool_tagline": "boomer mindset",
             "quote_under_posts": {
                 "body": "Who's gonna carry the boats? And the logs?",
                 "source": "David Goggins"
