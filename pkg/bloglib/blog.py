@@ -36,13 +36,10 @@ class Blog:
         if not title:
             title = input("title> ").rstrip("\n")
 
-        alphanumeric_spaces_regexp = compile(r"[\w ]")
         formatted_title = sub(
-            r"[ ]{1,}",
+            r"[\W]",
             "_",
-            "".join(
-                alphanumeric_spaces_regexp.findall(title)
-            )
+            title
         )
 
         with open(f"{self.post_dir}/_{formatted_title}.md", "a") as post_file:
