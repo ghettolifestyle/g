@@ -65,6 +65,12 @@ class Blog:
             print(f"\t[{index}] {post}")
 
     def prune_posts(self):
+        """
+        Executes an S3 delete_object operation for all posts that are contained
+        in the bucket but not present locally, i.e. have been deleted or moved
+        and should therefore not be listed on the blog.
+        """
+
         for post in self.get_unsynced_posts():
             self.s3_client.delete_object(
                 Bucket=self.bucket,
@@ -74,6 +80,11 @@ class Blog:
             logging.info(f"pruned post '{post}' from bucket")
 
     def sync_state(self):
+        """ Builds a ready-to-ship version of the blog directory including
+        index, posts and atom feed and then uploads this directory to a S3
+        bucket to be served via Cloudfront distribution. Also prunes posts that
+        have been deleted locally from the bucket. """
+
         tmp_dir = TemporaryDirectory()
 
         self.build_posts(tmp_dir.name)
@@ -122,6 +133,7 @@ class Blog:
         return sorted_posts
 
     def select_posts(self, prompt):
+        """ Lists posts in local post directory and prompts for user input on which posts to manipulate. """
         selected_posts = []
         local_posts = self.sort_posts(self.get_local_posts(extension=True))
 
