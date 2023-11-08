@@ -288,7 +288,11 @@ class Blog:
         return rendered_template
 
     def render_markdown(self, markdown_content):
-        return markdown.markdown(markdown_content)
+        return markdown.markdown(
+                markdown_content,
+                output_format="html",
+                extensions=["fenced_code"]
+        )
 
     def parse_post(self, file):
         yaml_header = {}
